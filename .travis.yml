@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t yan/react-test -f ./client/Dockerfile.dev ./client
+
+scrip:
+  - docker run -e CI=true yan/react-test npm test
+  
+after_success:
+  - docker build -t yan/multi-client ./client
+  - docker build -t yan/multi-nginx ./nginx
+  - docker build -t yan/multi-server ./server
+  - docker build -t yan/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push yan/multi-client
+  - docker push yan/multi-nginx
+  - docker push yan/multi-server
+  - docker push yan/multi-worker
